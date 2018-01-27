@@ -1,9 +1,40 @@
-version: '2' 
+version: '3' 
 
 services: 
-  backend-slackbot: 
-    build: ./backend-slackbot 
+  infotv-db: 
+    image: mariadb 
+    environment: 
+      MYSQL_ROOT_PASSWORD: 
+      MYSQL_DATABASE: 
     volumes: 
-      - ./backend-slackbot:/usr/src/app 
+      - ./infotv-db:/var/lib/mysql 
     ports: 
-      - 8080:80 
+      - 3306:3306
+
+  infotv-redis:
+    image: redis 
+    volumes: 
+      - ./infotv-redis:/data 
+    ports: 
+      - 6379:6379 
+
+  infotv-backend:
+    build: ./backend  
+    environment: 
+      DBCONN: 
+      REDISCONN: 
+    ports: 
+      - 8080:80
+    depends_on: 
+      - infotv-db
+      - infotv-redis
+
+  infotv-slackbot:
+    build: ./slackbot 
+    environment: 
+      SLACK_API_TOKEN: 
+      API_IP:  
+      API_PORT: 
+    depends_on:
+      - infotv-backend 
+
